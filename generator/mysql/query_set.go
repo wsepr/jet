@@ -42,6 +42,7 @@ SELECT COLUMN_NAME AS "column.Name",
 			JOIN information_schema.key_column_usage k USING(constraint_name,table_schema,table_name)
 		WHERE table_schema = ? AND table_name = ? AND t.constraint_type='PRIMARY KEY' AND k.column_name = columns.column_name
 	)) AS "column.IsPrimaryKey",
+    COLUMN_COMMENT AS "column.Comment",
 	IF (COLUMN_TYPE = 'tinyint(1)', 
 			'boolean', 
 			IF (DATA_TYPE='enum', 

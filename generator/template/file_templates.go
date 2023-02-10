@@ -123,7 +123,7 @@ import (
 type {{$modelTableTemplate.TypeName}} struct {
 {{- range .Columns}}
 {{- $field := structField .}}
-	{{$field.Name}} {{$field.Type.Name}} ` + "{{$field.TagsString}}" + `
+	{{$field.Name}} {{$field.Type.Name}} ` + "{{$field.TagsString}}" + ` {{if ne $field.Comment ""}}//{{$field.Comment}}{{end}}` + `
 {{- end}}
 }
 

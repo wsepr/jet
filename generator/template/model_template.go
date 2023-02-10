@@ -155,9 +155,10 @@ func DefaultEnumModel(enumMetaData metadata.Enum) EnumModel {
 
 // TableModelField is template for table model field generation
 type TableModelField struct {
-	Name string
-	Type Type
-	Tags []string
+	Name    string
+	Type    Type
+	Comment string
+	Tags    []string
 }
 
 // DefaultTableModelField returns default TableModelField implementation
@@ -169,9 +170,10 @@ func DefaultTableModelField(columnMetaData metadata.Column) TableModelField {
 	}
 
 	return TableModelField{
-		Name: utils.ToGoIdentifier(columnMetaData.Name),
-		Type: getType(columnMetaData),
-		Tags: tags,
+		Name:    utils.ToGoIdentifier(columnMetaData.Name),
+		Type:    getType(columnMetaData),
+		Comment: columnMetaData.Comment,
+		Tags:    tags,
 	}
 }
 

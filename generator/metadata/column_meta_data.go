@@ -4,6 +4,7 @@ package metadata
 type Column struct {
 	Name         string
 	IsPrimaryKey bool
+	Comment      string
 	IsNullable   bool
 	IsGenerated  bool
 	DataType     DataType
