@@ -15,7 +15,7 @@ type mySqlQuerySet struct{}
 
 func (m mySqlQuerySet) GetTablesMetaData(db *sql.DB, schemaName string, tableType metadata.TableType) []metadata.Table {
 	query := `
-SELECT table_name as "table.name"
+SELECT table_name as "table.name", TABLE_COMMENT as "table.comment"
 FROM INFORMATION_SCHEMA.tables
 WHERE table_schema = ? and table_type = ?
 ORDER BY table_name;

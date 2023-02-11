@@ -65,6 +65,7 @@ type TableModel struct {
 	Skip     bool
 	FileName string
 	TypeName string
+	Comment  string
 	Field    func(columnMetaData metadata.Column) TableModelField
 }
 
@@ -79,6 +80,7 @@ func DefaultTableModel(tableMetaData metadata.Table) TableModel {
 	return TableModel{
 		FileName: utils.ToGoFileName(tableMetaData.Name),
 		TypeName: utils.ToGoIdentifier(tableMetaData.Name),
+		Comment:  tableMetaData.Comment,
 		Field:    DefaultTableModelField,
 	}
 }

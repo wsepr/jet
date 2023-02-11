@@ -120,6 +120,7 @@ import (
 {{end}}
 
 {{$modelTableTemplate := tableTemplate}}
+//{{if ne $modelTableTemplate.Comment ""}}{{$modelTableTemplate.TypeName}} {{$modelTableTemplate.Comment}}{{end}}
 type {{$modelTableTemplate.TypeName}} struct {
 {{- range .Columns}}
 {{- $field := structField .}}
