@@ -43,6 +43,7 @@ SELECT COLUMN_NAME AS "column.Name",
 		WHERE table_schema = ? AND table_name = ? AND t.constraint_type='PRIMARY KEY' AND k.column_name = columns.column_name
 	)) AS "column.IsPrimaryKey",
     COLUMN_COMMENT AS "column.Comment",
+    CHARACTER_MAXIMUM_LENGTH AS "column.MaxLength",
 	IF (COLUMN_TYPE = 'tinyint(1)', 
 			'boolean', 
 			IF (DATA_TYPE='enum', 

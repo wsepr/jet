@@ -5,6 +5,7 @@ type Column struct {
 	Name         string
 	IsPrimaryKey bool
 	Comment      string
+	MaxLength    int
 	IsNullable   bool
 	IsGenerated  bool
 	DataType     DataType
