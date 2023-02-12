@@ -15,7 +15,7 @@ type mySqlQuerySet struct{}
 
 func (m mySqlQuerySet) GetTablesMetaData(db *sql.DB, schemaName string, tableType metadata.TableType) []metadata.Table {
 	query := `
-SELECT table_name as "table.name", TABLE_COMMENT as "table.comment"
+SELECT table_name as "table.name", replace(replace(TABLE_COMMENT,CHAR(10),''),CHAR(13),'') as "table.comment"
 FROM INFORMATION_SCHEMA.tables
 WHERE table_schema = ? and table_type = ?
 ORDER BY table_name;
@@ -42,7 +42,7 @@ SELECT COLUMN_NAME AS "column.Name",
 			JOIN information_schema.key_column_usage k USING(constraint_name,table_schema,table_name)
 		WHERE table_schema = ? AND table_name = ? AND t.constraint_type='PRIMARY KEY' AND k.column_name = columns.column_name
 	)) AS "column.IsPrimaryKey",
-    COLUMN_COMMENT AS "column.Comment",
+    replace(replace(COLUMN_COMMENT,CHAR(10),''),CHAR(13),'') AS "column.Comment",
     CHARACTER_MAXIMUM_LENGTH AS "column.MaxLength",
 	IF (COLUMN_TYPE = 'tinyint(1)', 
 			'boolean', 
