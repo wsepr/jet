@@ -36,15 +36,15 @@ func pgConnectionString(host string, port int, user, password, dbName string) st
 
 // MySQL test database connection parameters
 const (
-	MySqLHost     = "127.0.0.1"
-	MySQLPort     = 50902
-	MySQLUser     = "jet"
-	MySQLPassword = "jet"
+	MySqLHost     = "192.168.3.142"
+	MySQLPort     = 3306
+	MySQLUser     = "root"
+	MySQLPassword = "root"
 
-	MariaDBHost     = "127.0.0.1"
-	MariaDBPort     = 50903
-	MariaDBUser     = "jet"
-	MariaDBPassword = "jet"
+	MariaDBHost     = "192.168.3.142"
+	MariaDBPort     = 3306
+	MariaDBUser     = "root"
+	MariaDBPassword = "root"
 )
 
 // MySQLConnectionString is MySQL connection string for test database
