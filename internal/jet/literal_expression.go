@@ -386,7 +386,7 @@ func (n *wrap) serialize(statementType StatementType, out *SQLBuilder, options .
 	out.WriteString(")")
 }
 
-// WRAP wraps list of expressions with brackets '(' and ')'
+// WRAP wraps list of expressions with brackets - ( expression1, expression2, ... )
 func WRAP(expression ...Expression) Expression {
 	wrap := &wrap{expressions: expression}
 	wrap.ExpressionInterfaceImpl.Parent = wrap
@@ -443,6 +443,11 @@ func RawWithParent(raw string, parent ...Expression) Expression {
 	rawExp.ExpressionInterfaceImpl.Parent = OptionalOrDefaultExpression(rawExp, parent...)
 
 	return rawExp
+}
+
+// RawBool helper that for raw string boolean expressions
+func RawBool(raw string, namedArgs ...map[string]interface{}) BoolExpression {
+	return BoolExp(Raw(raw, namedArgs...))
 }
 
 // RawInt helper that for integer expressions

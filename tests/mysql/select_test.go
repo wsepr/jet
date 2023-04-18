@@ -217,16 +217,95 @@ GROUP BY payment.customer_id;
 
 }
 
+func TestGroupByWithRollup(t *testing.T) {
+	skipForMariaDB(t)
+
+	stmt := SELECT(
+		Inventory.FilmID.AS("film_id"),
+		Inventory.StoreID.AS("store_id"),
+		GROUPING(Inventory.FilmID).AS("grouping_film_id"),
+		GROUPING(Inventory.FilmID, Inventory.StoreID).AS("grouping_film_id_store_id"),
+		COUNT(STAR).AS("count"),
+	).FROM(
+		Inventory,
+	).WHERE(
+		Inventory.FilmID.IN(Int(2), Int(3)),
+	).GROUP_BY(
+		WITH_ROLLUP(Inventory.FilmID, Inventory.StoreID),
+	).ORDER_BY(
+		Inventory.FilmID,
+		Inventory.StoreID,
+	)
+
+	testutils.AssertDebugStatementSql(t, stmt, `
+SELECT inventory.film_id AS "film_id",
+     inventory.store_id AS "store_id",
+     GROUPING(inventory.film_id) AS "grouping_film_id",
+     GROUPING(inventory.film_id, inventory.store_id) AS "grouping_film_id_store_id",
+     COUNT(*) AS "count"
+FROM dvds.inventory
+WHERE inventory.film_id IN (2, 3)
+GROUP BY inventory.film_id, inventory.store_id WITH ROLLUP
+ORDER BY inventory.film_id, inventory.store_id;
+`)
+
+	var dest []struct {
+		FilmID                int
+		StoreID               int
+		GroupingFilmID        int
+		GroupingFilmIDStoreID int
+	}
+
+	err := stmt.Query(db, &dest)
+	require.NoError(t, err)
+
+	testutils.AssertJSON(t, dest, `
+[
+	{
+		"FilmID": 0,
+		"StoreID": 0,
+		"GroupingFilmID": 1,
+		"GroupingFilmIDStoreID": 3
+	},
+	{
+		"FilmID": 2,
+		"StoreID": 0,
+		"GroupingFilmID": 0,
+		"GroupingFilmIDStoreID": 1
+	},
+	{
+		"FilmID": 2,
+		"StoreID": 2,
+		"GroupingFilmID": 0,
+		"GroupingFilmIDStoreID": 0
+	},
+	{
+		"FilmID": 3,
+		"StoreID": 0,
+		"GroupingFilmID": 0,
+		"GroupingFilmIDStoreID": 1
+	},
+	{
+		"FilmID": 3,
+		"StoreID": 2,
+		"GroupingFilmID": 0,
+		"GroupingFilmIDStoreID": 0
+	}
+]
+`)
+}
+
 func TestSubQuery(t *testing.T) {
 
-	rRatingFilms := Film.
-		SELECT(
-			Film.FilmID,
-			Film.Title,
-			Film.Rating,
-		).
-		WHERE(Film.Rating.EQ(enum.FilmRating.R)).
-		AsTable("rFilms")
+	rRatingFilms := SELECT(
+		Film.FilmID,
+		Film.Title,
+		Film.Rating,
+	).FROM(
+		Film,
+	).WHERE(
+		Film.Rating.EQ(enum.FilmRating.R),
+	).AsTable("rFilms")
 
 	rFilmID := Film.FilmID.From(rRatingFilms)
 
@@ -847,6 +926,36 @@ LIMIT 5;
 	require.Equal(t, dest.Films[0].Title, "ACADEMY DINOSAUR")
 	require.Equal(t, dest.Films[1].Title, "ACE GOLDFINGER")
 	require.Equal(t, dest.Films[4].Title, "AFRICAN EGG")
+}
+
+func TestUseSchema(t *testing.T) {
+	UseSchema("dvds2")
+	defer UseSchema("dvds")
+
+	stmt := SELECT(
+		Film.FilmID,
+		Film.Title,
+		Film.LanguageID,
+	).FROM(
+		Film,
+	).WHERE(
+		Film.Title.EQ(String("AFRICAN EGG")),
+	)
+
+	testutils.AssertDebugStatementSql(t, stmt, `
+SELECT film.film_id AS "film.film_id",
+     film.title AS "film.title",
+     film.language_id AS "film.language_id"
+FROM dvds2.film
+WHERE film.title = 'AFRICAN EGG';
+`)
+
+	var dest model.Film
+	err := stmt.Query(db, &dest)
+	require.NoError(t, err)
+	require.Equal(t, dest.FilmID, uint16(5))
+	require.Equal(t, dest.Title, "AFRICAN EGG")
+	require.Equal(t, dest.LanguageID, uint8(1))
 }
 
 func TestLateral(t *testing.T) {
