@@ -65,6 +65,21 @@ func (a {{tableTemplate.TypeName}}) WithSuffix(suffix string) *{{tableTemplate.T
 	return new{{tableTemplate.TypeName}}(a.SchemaName(), a.TableName()+suffix, a.TableName())
 }
 
+// GetAllColumns 为了实现BaseDao
+func (a {{tableTemplate.TypeName}}) GetAllColumns() mysql.ColumnList {
+	return a.AllColumns
+}
+
+// GetMutableColumns 为了实现BaseDao
+func (a {{tableTemplate.TypeName}}) GetMutableColumns() mysql.ColumnList {
+	return a.MutableColumns
+}
+
+// GetIdColumn 为了实现BaseDao
+func (a {{tableTemplate.TypeName}}) GetIdColumn() mysql.ColumnInteger {
+	return a.ID
+}
+
 func new{{tableTemplate.TypeName}}(schemaName, tableName, alias string) *{{tableTemplate.TypeName}} {
 	return &{{tableTemplate.TypeName}}{
 		{{structImplName}}: new{{tableTemplate.TypeName}}Impl(schemaName, tableName, alias),
@@ -108,6 +123,13 @@ func UseSchema(schema string) {
 }
 `
 
+var tableSqlBuilderTableTypeTemplate = `package {{package}}
+
+type TabelType interface {
+	{{ . }}
+}
+`
+
 var tableModelFileTemplate = `package {{package}}
 
 {{ with modelImports }}
@@ -127,6 +149,20 @@ type {{$modelTableTemplate.TypeName}} struct {
 {{- end}}
 }
 
+`
+
+var tableModelTypeTemplate = `package {{package}}
+
+type ModelType interface {
+	{{ . }}
+}
+`
+
+var tableViewTypeTemplate = `package {{package}}
+
+type ViewType interface {
+	{{ . }}
+}
 `
 
 var enumSQLBuilderTemplate = `package {{package}}

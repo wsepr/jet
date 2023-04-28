@@ -178,6 +178,7 @@ func processTableSQLBuilder(fileTypes, dirPath string,
 
 	if len(generatedBuilders) > 0 {
 		generateUseSchemaFunc(dirPath, fileTypes, generatedBuilders)
+		generateTableType(dirPath, fileTypes, generatedBuilders)
 	}
 }
 
@@ -200,6 +201,32 @@ func generateUseSchemaFunc(dirPath, fileTypes string, builders []TableSQLBuilder
 	throw.OnError(err)
 }
 
+// generateTableType 生成所有table的泛型限定类型
+func generateTableType(dirPath, fileTypes string, builders []TableSQLBuilder) {
+
+	typeNames := make([]string, 0, len(builders))
+	for _, b := range builders {
+		typeNames = append(typeNames, b.TypeName)
+	}
+	allTableType := strings.Join(typeNames, " | ")
+
+	text, err := generateTemplate(
+		autoGenWarningTemplate+tableSqlBuilderTableTypeTemplate,
+		allTableType,
+		template.FuncMap{
+			"package": func() string { return builders[0].PackageName() },
+			"type":    func() string { return fileTypes },
+		},
+	)
+	throw.OnError(err)
+
+	basePath := path.Join(dirPath, builders[0].Path)
+	fileName := fileTypes + "_type"
+
+	err = utils.SaveGoFile(basePath, fileName, text)
+	throw.OnError(err)
+}
+
 func insertedRowAlias(dialect jet.Dialect) string {
 	if dialect.Name() == "MySQL" {
 		return "new"
@@ -213,6 +240,8 @@ func processTableModels(fileTypes, modelDirPath string, tablesMetaData []metadat
 		return
 	}
 	fmt.Printf("Generating %s model files...\n", fileTypes)
+
+	typeNames := make([]string, 0, len(tablesMetaData))
 
 	for _, tableMetaData := range tablesMetaData {
 		var tableTemplate TableModel
@@ -248,7 +277,39 @@ func processTableModels(fileTypes, modelDirPath string, tablesMetaData []metadat
 
 		err = utils.SaveGoFile(modelDirPath, tableTemplate.FileName, text)
 		throw.OnError(err)
+
+		typeNames = append(typeNames, tableTemplate.TypeName)
 	}
+
+	if len(typeNames) > 0 {
+		generateModelType(modelDirPath, fileTypes, typeNames, modelTemplate)
+	}
+}
+
+// generateModelType 生成所有model的泛型限定类型
+func generateModelType(dirPath, fileTypes string, typeNames []string, modelTemplate Model) {
+
+	allModelType := strings.Join(typeNames, " | ")
+
+	fileName := "model_type"
+	typeTemplate := tableModelTypeTemplate
+	if fileTypes == "view" {
+		typeTemplate = tableViewTypeTemplate
+		fileName = "view_type"
+	}
+
+	text, err := generateTemplate(
+		autoGenWarningTemplate+typeTemplate,
+		allModelType,
+		template.FuncMap{
+			"package": func() string { return modelTemplate.PackageName() },
+			"type":    func() string { return fileTypes },
+		},
+	)
+	throw.OnError(err)
+
+	err = utils.SaveGoFile(dirPath, fileName, text)
+	throw.OnError(err)
 }
 
 func processEnumModels(modelDir string, enumsMetaData []metadata.Enum, modelTemplate Model) {
